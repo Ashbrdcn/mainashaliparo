@@ -1,0 +1,7 @@
+{
+  "name": "Portfoliob — Minimalist Monochromatic Portfolio",
+  "description": "Minimalist landing page with bold typography, crosshair grid layout, prominent CTA button, monochromatic palette, and mobile slide-out navigation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
