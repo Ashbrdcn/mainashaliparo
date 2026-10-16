@@ -44,9 +44,9 @@ export const MobileSlideMenu: React.FC<MobileSlideMenuProps> = ({
 
   const navLinks = [
     { id: 'hero', label: 'Home', number: '01' },
-    { id: 'about', label: 'About & Skills', number: '02' },
-    { id: 'works', label: 'Selected Works', number: '03' },
-    { id: 'services', label: 'Services & Stack', number: '04' },
+    { id: 'works', label: 'Selected Works', number: '02' },
+    { id: 'services', label: 'Services', number: '03' },
+    { id: 'about', label: 'About Me', number: '04' },
     { id: 'contact', label: 'Contact', number: '05' },
   ];
 

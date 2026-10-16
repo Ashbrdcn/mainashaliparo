@@ -77,30 +77,32 @@ export const FullScreenNav: React.FC<FullScreenNavProps> = ({
   };
 
   const navItems = [
-    { id: 'hero', number: '01', label: 'HOME' },
-    { id: 'works', number: '02', label: 'PROJECTS' },
-    { id: 'services', number: '03', label: 'SERVICES' },
-    { id: 'about', number: '04', label: 'ABOUT ME' },
-    { id: 'contact', number: '05', label: 'CONTACT' },
+    { id: 'hero', number: '01', label: 'HOME', subtitle: 'Overview & Introduction' },
+    { id: 'works', number: '02', label: 'PROJECTS', subtitle: 'Selected Works & Case Studies' },
+    { id: 'services', number: '03', label: 'SERVICES', subtitle: 'What I Build for Clients' },
+    { id: 'about', number: '04', label: 'ABOUT ME', subtitle: 'Bio, Approach & Background' },
+    { id: 'contact', number: '05', label: 'CONTACT', subtitle: 'Direct Inquiries & Collaboration' },
   ];
+
+  const currentActiveItem = navItems.find((item) => item.id === activeSection) || navItems[0];
 
   if (!isRendered) return null;
 
-  // Dynamic hover colors per theme
+  // Terracotta Orange hover and active colors
   const getHoverClasses = (isActive: boolean) => {
-    if (isLight) {
-      return isActive
-        ? 'text-white font-black drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]'
-        : 'text-zinc-200 hover:text-white hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]';
+    if (isActive) {
+      return 'text-[#d95d39] font-black drop-shadow-[0_0_20px_rgba(217,93,57,0.55)]';
     }
-    return isActive
-      ? 'text-white font-black drop-shadow-[0_0_25px_rgba(255,255,255,0.7)]'
-      : 'text-zinc-300 hover:text-white hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]';
+    return isLight
+      ? 'text-zinc-200 group-hover:text-[#d95d39] transition-colors duration-200 group-hover:drop-shadow-[0_0_15px_rgba(217,93,57,0.4)]'
+      : 'text-zinc-300 group-hover:text-[#d95d39] transition-colors duration-200 group-hover:drop-shadow-[0_0_15px_rgba(217,93,57,0.4)]';
   };
 
   const getCrosshairColor = (isActive: boolean) => {
-    if (isLight) return isActive ? 'text-white' : 'text-zinc-400 group-hover:text-white';
-    return isActive ? 'text-white' : 'text-zinc-500 group-hover:text-white';
+    if (isActive) return 'text-[#d95d39] font-bold';
+    return isLight
+      ? 'text-zinc-400 group-hover:text-[#d95d39] transition-colors duration-200'
+      : 'text-zinc-500 group-hover:text-[#d95d39] transition-colors duration-200';
   };
 
   return (
@@ -130,14 +132,24 @@ export const FullScreenNav: React.FC<FullScreenNavProps> = ({
           isAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
         }`}
       >
-        {/* Brand Lockup - Just ASH */}
+        {/* Brand Lockup + Location Info ("Where am I in the page") */}
         <div className="flex items-center gap-3 sm:gap-3.5">
-          <span className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-white leading-none">
+          <button
+            onClick={() => {
+              onSelectSection('hero');
+              onClose();
+            }}
+            className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-white leading-none hover:text-[#d95d39] transition-colors cursor-pointer text-left"
+          >
             ASH
-          </span>
-          <span className="hidden sm:inline-block text-[11px] font-mono text-zinc-300/80 pl-3 border-l border-zinc-700/80">
-            Jhon Bon Ashley Aliparo
-          </span>
+          </button>
+          <div className="flex items-center gap-2 pl-3 border-l border-zinc-700/80 text-[11px] font-mono">
+            <span className="w-2 h-2 rounded-full bg-[#d95d39] animate-pulse shrink-0" />
+            <span className="hidden sm:inline text-zinc-400">PAGE:</span>
+            <span className="font-bold text-[#d95d39] tracking-wider uppercase">
+              {currentActiveItem.number} // {currentActiveItem.label}
+            </span>
+          </div>
         </div>
 
         {/* Controls: Mode Switcher + Close Button */}
@@ -195,18 +207,26 @@ export const FullScreenNav: React.FC<FullScreenNavProps> = ({
         {/* Left Column: Navigation links - Staggered 1 by 1 entrance */}
         <div className="w-full lg:max-w-md xl:max-w-lg flex-1 flex flex-col space-y-2 sm:space-y-3">
           <div
-            className={`text-[11px] font-mono uppercase tracking-widest text-zinc-300 mb-2 flex items-center gap-2 transition-all duration-500 ${
+            className={`text-[11px] font-mono uppercase tracking-widest text-zinc-300 mb-3 flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-zinc-700/60 transition-all duration-500 ${
               isAnimated ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            Directory Navigation
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#d95d39] animate-pulse shrink-0" />
+              <span>Directory Navigation</span>
+            </div>
+
+            {/* Direct indicator answering: "Where am I in the page" */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#d95d39]/20 border border-[#d95d39]/40 text-[#d95d39] text-[10px] font-mono shadow-xs">
+              <span className="text-zinc-400 font-semibold">LOCATION:</span>
+              <span className="font-bold">{currentActiveItem.number} // {currentActiveItem.label}</span>
+            </div>
           </div>
 
           {navItems.map((item, index) => {
             const isActive = activeSection === item.id;
             // 1-by-1 staggered slide calculation
-            const itemDelayMs = index * 90 + 120; // 120ms, 210ms, 300ms, 390ms, 480ms
+            const itemDelayMs = index * 80 + 100;
 
             return (
               <div
@@ -214,7 +234,11 @@ export const FullScreenNav: React.FC<FullScreenNavProps> = ({
                 style={{
                   transitionDelay: isAnimated ? `${itemDelayMs}ms` : '0ms',
                 }}
-                className={`group flex items-center justify-between cursor-pointer py-2 px-3.5 -mx-3.5 rounded-2xl hover:bg-white/[0.08] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                className={`group flex items-center justify-between cursor-pointer py-2.5 px-3.5 -mx-3.5 rounded-2xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  isActive
+                    ? 'bg-[#d95d39]/15 border border-[#d95d39]/40 shadow-[0_0_20px_rgba(217,93,57,0.15)]'
+                    : 'border border-transparent hover:bg-white/[0.08] hover:border-[#d95d39]/30'
+                } ${
                   isAnimated
                     ? 'opacity-100 translate-x-0'
                     : 'opacity-0 translate-x-16 sm:translate-x-24'
@@ -224,9 +248,13 @@ export const FullScreenNav: React.FC<FullScreenNavProps> = ({
                   onClose();
                 }}
               >
-                {/* Left Label with Index Prefix */}
+                {/* Left Label with Index Prefix & Terracotta Hover */}
                 <div className="flex items-baseline gap-3.5 sm:gap-5 transition-transform duration-300 ease-out group-hover:translate-x-3">
-                  <span className="font-mono text-xs sm:text-sm text-zinc-400 font-semibold tracking-wider">
+                  <span
+                    className={`font-mono text-xs sm:text-sm font-semibold tracking-wider transition-colors duration-200 ${
+                      isActive ? 'text-[#d95d39] font-bold' : 'text-zinc-400 group-hover:text-[#d95d39]'
+                    }`}
+                  >
                     {item.number}
                   </span>
                   <span
@@ -236,9 +264,17 @@ export const FullScreenNav: React.FC<FullScreenNavProps> = ({
                   >
                     {item.label}
                   </span>
+
+                  {/* Active Page Marker */}
+                  {isActive && (
+                    <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#d95d39]/25 text-[#d95d39] border border-[#d95d39]/50 tracking-wider shadow-xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#d95d39] animate-pulse" />
+                      YOU ARE HERE
+                    </span>
+                  )}
                 </div>
 
-                {/* Crosshairs (+) Indicator */}
+                {/* Crosshairs (+) Indicator with Terracotta Hover */}
                 <span
                   className={`font-mono text-xl sm:text-2xl font-light transition-all duration-300 ease-out transform group-hover:rotate-90 group-hover:scale-125 select-none ${getCrosshairColor(
                     isActive

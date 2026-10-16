@@ -6,9 +6,9 @@ import { FullScreenNav } from './components/FullScreenNav';
 import { ProjectModal } from './components/ProjectModal';
 import { ContactModal } from './components/ContactModal';
 import { SectionDivider } from './components/SectionDivider';
-import { AshPortrait } from './components/AshPortrait';
 import { GraphicsPictureBento } from './components/GraphicsPictureBento';
 import { ServiceModal, ClientService } from './components/ServiceModal';
+import { QuickCommandPalette } from './components/QuickCommandPalette';
 
 // Curated 3-4 High-Impact Case Studies focused on business RESULTS rather than tech-jargon
 const CURATED_PROJECTS: Project[] = [
@@ -200,6 +200,20 @@ const CLIENT_SERVICES: ClientService[] = [
   }
 ];
 
+export const SECTION_METADATA: Record<string, { label: string; number: string; title: string }> = {
+  hero: { label: 'Home', number: '01', title: 'Overview' },
+  works: { label: 'Projects', number: '02', title: 'Selected Works' },
+  services: { label: 'Services', number: '03', title: 'What I Build' },
+  about: { label: 'About Me', number: '04', title: 'Bio & Approach' },
+  contact: { label: 'Contact', number: '05', title: 'Get In Touch' },
+};
+
+export const DESKTOP_NAV_LINKS = [
+  { id: 'works', label: 'Projects', number: '02' },
+  { id: 'services', label: 'Services', number: '03' },
+  { id: 'about', label: 'About Me', number: '04' },
+];
+
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>('monochrome-dark');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -208,6 +222,9 @@ export default function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedService, setSelectedService] = useState<ClientService | null>(null);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [scopeForInquiry, setScopeForInquiry] = useState<string | undefined>(undefined);
+  const [categoryForInquiry, setCategoryForInquiry] = useState<string | undefined>(undefined);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [projectDisciplineFilter, setProjectDisciplineFilter] = useState<'all' | 'fullstack' | 'uiux' | 'graphic'>('all');
 
@@ -215,6 +232,18 @@ export default function App() {
     setIsNavIconAnimating(true);
     setIsMobileMenuOpen(true);
     setTimeout(() => setIsNavIconAnimating(false), 600);
+  };
+
+  const handleOpenInquiryWithScope = (scopeSummary: string, category: string) => {
+    setScopeForInquiry(scopeSummary);
+    setCategoryForInquiry(category);
+    setIsContactOpen(true);
+  };
+
+  const handleOpenNormalContact = () => {
+    setScopeForInquiry(undefined);
+    setCategoryForInquiry(undefined);
+    setIsContactOpen(true);
   };
 
   // Track window scroll progress for top indicator bar and active section
@@ -226,13 +255,26 @@ export default function App() {
         setScrollProgress(Math.min(100, Math.max(0, currentProgress)));
       }
 
-      // Track active section in new layout order: hero -> works -> services -> about -> contact
+      // Check top of page
+      if (window.scrollY < 180) {
+        setActiveSection('hero');
+        return;
+      }
+
+      // Check bottom of page
+      const scrollBottom = window.innerHeight + window.scrollY;
+      if (scrollBottom >= document.documentElement.scrollHeight - 140) {
+        setActiveSection('contact');
+        return;
+      }
+
+      // Track active section in order: hero -> works -> services -> about -> contact
       const sections = ['hero', 'works', 'services', 'about', 'contact'];
       for (const sectionId of [...sections].reverse()) {
         const el = document.getElementById(sectionId);
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= 140) {
+          if (rect.top <= 200) {
             setActiveSection(sectionId);
             break;
           }
@@ -257,7 +299,7 @@ export default function App() {
     crosshair: `${isLight ? 'text-[#78716c]' : 'text-zinc-600'} ${fade}`,
     bgText: `${isLight ? 'text-[#e5e0d3]' : 'text-white/[0.08] text-stroke-subtle'} ${fade}`,
     fgHeading: `${isLight ? 'text-[#0c0a09]' : 'text-white'} ${fade}`,
-    navText: `${isLight ? 'text-[#292524] hover:text-[#0c0a09] font-semibold' : 'text-zinc-400 hover:text-white'} ${fade}`,
+    navText: `${isLight ? 'text-[#292524] hover:text-[#d95d39] font-semibold' : 'text-zinc-400 hover:text-[#d95d39]'} ${fade}`,
     ctaBadge: `${isLight ? 'bg-white border-[#ded8cc] text-[#0c0a09] shadow-md' : 'bg-[#141418] border-zinc-800 text-white shadow-2xl'} ${fade}`,
     ctaBadgeTitle: `${isLight ? 'text-[#0c0a09]' : 'text-white'} ${fade}`,
     ctaBadgeSub: `${isLight ? 'text-[#292524]' : 'text-zinc-300'} ${fade}`,
@@ -336,8 +378,8 @@ export default function App() {
               : 'bg-[#09090b]/85 border-white/10 text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
           }`}
         >
-          {/* Brand Logo - Just ASH */}
-          <div className="flex items-center">
+          {/* Brand Logo */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
             <a
               href="#hero"
               onClick={(e) => {
@@ -347,37 +389,49 @@ export default function App() {
               className="font-display font-extrabold tracking-tight text-xl sm:text-2xl whitespace-nowrap shrink-0 group select-none cursor-pointer transition-transform duration-300 hover:scale-105"
               aria-label="Ash - Home"
             >
-              <span className="leading-none">ASH</span>
+              <span className="leading-none group-hover:text-[#d95d39] transition-colors">ASH</span>
             </a>
           </div>
 
-          {/* Quick Nav Links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-mono">
-            <button
-              onClick={() => scrollToSection('works')}
-              className={`transition-colors cursor-pointer font-bold ${activeSection === 'works' ? 'text-[#d95d39]' : themeClasses.navText}`}
-            >
-              Projects
-            </button>
-            <button
-              onClick={() => scrollToSection('services')}
-              className={`transition-colors cursor-pointer font-bold ${activeSection === 'services' ? 'text-[#d95d39]' : themeClasses.navText}`}
-            >
-              Services
-            </button>
-            <button
-              onClick={() => scrollToSection('about')}
-              className={`transition-colors cursor-pointer font-bold ${activeSection === 'about' ? 'text-[#d95d39]' : themeClasses.navText}`}
-            >
-              About Me
-            </button>
+          {/* Quick Nav Links (Desktop) with Terracotta Orange Hover & Active Indicators */}
+          <nav className="hidden md:flex items-center gap-5 lg:gap-6 text-xs font-mono" aria-label="Main Navigation">
+            {DESKTOP_NAV_LINKS.map((link) => {
+              const isActive = activeSection === link.id;
+              return (
+                <button
+                  key={link.id}
+                  onClick={() => scrollToSection(link.id)}
+                  className={`group relative py-1 transition-colors duration-200 cursor-pointer font-bold flex items-center gap-1.5 ${
+                    isActive
+                      ? 'text-[#d95d39]'
+                      : isLight
+                        ? 'text-[#292524] hover:text-[#d95d39]'
+                        : 'text-zinc-400 hover:text-[#d95d39]'
+                  }`}
+                  title={`Navigate to ${link.label}${isActive ? ' (Current page location)' : ''}`}
+                >
+                  {/* Active Section Indicator Dot */}
+                  {isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#d95d39] animate-pulse shrink-0 shadow-[0_0_6px_rgba(217,93,57,0.8)]" />
+                  )}
+                  <span className="transition-transform duration-200 group-hover:scale-105">{link.label}</span>
+
+                  {/* Active bottom line indicator or terracotta hover expansion underline */}
+                  {isActive ? (
+                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#d95d39] rounded-full shadow-[0_0_8px_rgba(217,93,57,0.6)]" />
+                  ) : (
+                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#d95d39]/70 scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left rounded-full" />
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Controls: Direct Contact CTA Button + Theme Switcher + Nav Menu Trigger */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Prominent Direct Contact Button in the Navbar */}
             <button
-              onClick={() => setIsContactOpen(true)}
+              onClick={handleOpenNormalContact}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-mono font-bold bg-[#d95d39] hover:bg-[#c24e2b] text-white shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
               title="Get in touch with Ash"
             >
@@ -434,21 +488,21 @@ export default function App() {
               onClick={handleNavIconClick}
               className={`relative group p-2 rounded-full flex flex-col justify-center items-end gap-1.5 focus:outline-none cursor-pointer transition-all duration-300 ${
                 isLight
-                  ? 'hover:bg-zinc-100 active:bg-zinc-200 text-[#0c0a09]'
-                  : 'hover:bg-white/10 active:bg-white/20 text-white'
+                  ? 'hover:bg-zinc-100 active:bg-zinc-200 text-[#0c0a09] hover:text-[#d95d39]'
+                  : 'hover:bg-white/10 active:bg-white/20 text-white hover:text-[#d95d39]'
               } ${isNavIconAnimating ? 'scale-90' : 'hover:scale-105 active:scale-95'}`}
               aria-label="Open Navigation Menu"
               aria-expanded={isMobileMenuOpen}
             >
               <span
-                className={`h-[2px] bg-current rounded-full transition-all duration-300 ease-out ${
+                className={`h-[2px] bg-current rounded-full transition-all duration-300 ease-out group-hover:bg-[#d95d39] ${
                   isNavIconAnimating
                     ? 'w-6 -translate-x-1 rotate-6'
                     : 'w-5 sm:w-6 group-hover:w-6'
                 }`}
               />
               <span
-                className={`h-[2px] bg-current rounded-full transition-all duration-300 ease-out ${
+                className={`h-[2px] bg-current rounded-full transition-all duration-300 ease-out group-hover:bg-[#d95d39] ${
                   isNavIconAnimating
                     ? 'w-6 translate-x-0.5 -rotate-6'
                     : 'w-3.5 sm:w-4 group-hover:w-6'
@@ -492,7 +546,7 @@ export default function App() {
           {/* Faded Background Typography ASH */}
           <div className="absolute inset-x-0 top-[10%] sm:top-[14%] flex justify-center pointer-events-none select-none z-0">
             <h1
-              className="font-condensed font-extrabold text-[24vw] sm:text-[28vw] leading-none tracking-tight uppercase text-center transition-all duration-500 select-none"
+              className="font-display font-extrabold text-[22vw] sm:text-[25vw] leading-none tracking-normal uppercase text-center transition-all duration-500 select-none"
               style={getBgAshStyle()}
             >
               ASH
@@ -511,9 +565,9 @@ export default function App() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.65, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-                className={`font-display font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] leading-tight tracking-tight uppercase ${themeClasses.heading} max-w-3xl`}
+                className={`font-display font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] leading-[1.2] tracking-normal ${themeClasses.heading} max-w-3xl`}
               >
-                I BUILD FULL-STACK WEB APPLICATIONS, INTUITIVE INTERFACES, AND DISTINCTIVE VISUAL IDENTITIES
+                I build full-stack web applications, intuitive interfaces, and distinctive visual identities.
               </motion.h2>
 
               {/* Disciplines Kicker */}
@@ -1001,7 +1055,7 @@ export default function App() {
 
       {/* 
         ========================================================================
-        3. SERVICES / WHAT I CAN BUILD FOR YOU SECTION
+        2. SERVICES / WHAT I CAN BUILD FOR YOU SECTION
         Reworded so clients understand outcomes, keeping tech names as small tags
         ========================================================================
       */}
@@ -1125,7 +1179,7 @@ export default function App() {
 
       {/* 
         ========================================================================
-        4. ABOUT ME SECTION (3-4 Sentences + Portrait Photo)
+        3. ABOUT ME SECTION (3-4 Sentences - Clean Editorial Layout)
         ========================================================================
       */}
       <SectionDivider
@@ -1136,105 +1190,83 @@ export default function App() {
         indexCode="SEC.03"
       />
 
-      <section id="about" className={`relative py-20 sm:py-28 border-b ${themeClasses.divider} px-6 sm:px-10 max-w-7xl mx-auto`}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          {/* Left Column: Ash's Photo / Portrait */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-5 flex justify-center"
-          >
-            <div className={`relative w-full max-w-md p-4 sm:p-6 rounded-3xl border ${
-              isLight ? 'bg-white border-[#ded8cc] shadow-md' : 'bg-[#121216] border-zinc-800 shadow-2xl'
-            }`}>
-              <AshPortrait theme={theme} onOpenContact={() => setIsContactOpen(true)} />
+      <section id="about" className={`relative py-20 sm:py-28 border-b ${themeClasses.divider} px-6 sm:px-10 max-w-5xl mx-auto`}>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-8"
+        >
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#d95d39] animate-pulse" />
+              <span className={`text-xs font-mono uppercase tracking-widest ${themeClasses.sectionSub}`}>
+                03 · About Jhon Bon Ashley Aliparo
+              </span>
             </div>
-          </motion.div>
+            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-display font-extrabold tracking-tight ${themeClasses.heading} max-w-3xl`}>
+              Engineering Precision Meets Distinctive Visual Design
+            </h2>
+          </div>
 
-          {/* Right Column: 3-4 Crisp Sentences & Direct Contact Trigger */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-7 space-y-6"
-          >
+          {/* Exactly 3-4 Punchy Sentences */}
+          <div className={`space-y-5 text-base sm:text-lg md:text-xl leading-relaxed font-normal max-w-3xl ${themeClasses.bodyText}`}>
+            <p>
+              I am <strong className={isLight ? 'text-[#0c0a09] font-bold' : 'text-white'}>Jhon Bon Ashley Aliparo (Ash)</strong> — a full-stack web developer and designer based in the Philippines, working with businesses worldwide.
+            </p>
+            <p>
+              Instead of hiring separate agencies for backend coding and visual design, I handle the complete pipeline: from relational database architecture and secure logins, to interactive mobile interfaces in Figma, and custom vector logos.
+            </p>
+            <p>
+              My focus is building practical, zero-fluff software and clear brand looks that help your business make sales and run smoother every day.
+            </p>
+          </div>
+
+          {/* Quick Credentials Strip */}
+          <div className={`grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t ${themeClasses.divider} max-w-3xl`}>
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <span className={`text-xs font-mono uppercase tracking-widest ${themeClasses.sectionSub}`}>
-                  03 · About Jhon Bon Ashley Aliparo
-                </span>
+              <div className={`text-xl sm:text-2xl font-bold font-display tracking-tight ${themeClasses.metricNum}`}>
+                Full-Stack
               </div>
-              <h2 className={`text-2xl sm:text-4xl font-display font-extrabold tracking-tight ${themeClasses.heading}`}>
-                Engineering Precision Meets Distinctive Visual Design
-              </h2>
+              <div className={`text-xs mt-1 font-mono ${themeClasses.sectionSub}`}>
+                Python, PHP & SQL
+              </div>
             </div>
+            <div>
+              <div className={`text-xl sm:text-2xl font-bold font-display tracking-tight ${themeClasses.metricNum}`}>
+                UI/UX & Figma
+              </div>
+              <div className={`text-xs mt-1 font-mono ${themeClasses.sectionSub}`}>
+                Mobile-First Prototypes
+              </div>
+            </div>
+            <div>
+              <div className={`text-xl sm:text-2xl font-bold font-display tracking-tight ${themeClasses.metricNum}`}>
+                Direct
+              </div>
+              <div className={`text-xs mt-1 font-mono ${themeClasses.sectionSub}`}>
+                No Agency Middlemen
+              </div>
+            </div>
+          </div>
 
-            {/* Exactly 3-4 Punchy Sentences */}
-            <div className={`space-y-4 text-base sm:text-lg md:text-xl lg:text-[1.35rem] leading-relaxed font-normal ${themeClasses.bodyText}`}>
-              <p>
-                I am <strong className={isLight ? 'text-[#0c0a09] font-bold' : 'text-white'}>Jhon Bon Ashley Aliparo (Ash)</strong> — a full-stack web developer and designer based in the Philippines, working with businesses worldwide.
-              </p>
-              <p>
-                Instead of hiring separate agencies for backend coding and visual design, I handle the complete pipeline: from relational database architecture and secure logins, to interactive mobile interfaces in Figma, and custom vector logos.
-              </p>
-              <p>
-                My focus is building practical, zero-fluff software and clear brand looks that help your business make sales and run smoother every day.
-              </p>
-            </div>
-
-            {/* Quick Credentials Strip */}
-            <div className={`grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t ${themeClasses.divider}`}>
-              <div>
-                <div className={`text-2xl sm:text-3xl font-bold font-condensed tracking-tight ${themeClasses.metricNum}`}>
-                  Full-Stack
-                </div>
-                <div className={`text-xs mt-0.5 font-mono ${themeClasses.sectionSub}`}>
-                  Python, PHP & SQL
-                </div>
-              </div>
-              <div>
-                <div className={`text-2xl sm:text-3xl font-bold font-condensed tracking-tight ${themeClasses.metricNum}`}>
-                  UI/UX & Figma
-                </div>
-                <div className={`text-xs mt-0.5 font-mono ${themeClasses.sectionSub}`}>
-                  Mobile-First Prototypes
-                </div>
-              </div>
-              <div>
-                <div className={`text-2xl sm:text-3xl font-bold font-condensed tracking-tight ${themeClasses.metricNum}`}>
-                  Direct
-                </div>
-                <div className={`text-xs mt-0.5 font-mono ${themeClasses.sectionSub}`}>
-                  No Agency Middlemen
-                </div>
-              </div>
-            </div>
-
-            {/* Direct Contact Button */}
-            <div className="pt-2">
-              <button
-                onClick={() => setIsContactOpen(true)}
-                className={`px-6 py-3 rounded-xl font-mono font-bold text-xs inline-flex items-center gap-2 transition-all cursor-pointer shadow-md ${
-                  isLight
-                    ? 'bg-[#0c0a09] text-white hover:bg-[#292524]'
-                    : 'bg-white text-zinc-950 hover:bg-zinc-200'
-                }`}
-              >
-                <Mail className="w-3.5 h-3.5" />
-                <span>Start a Project with Ash</span>
-              </button>
-            </div>
-          </motion.div>
-        </div>
+          {/* Direct Contact Button */}
+          <div className="pt-2">
+            <button
+              onClick={() => setIsContactOpen(true)}
+              className="px-6 py-3 rounded-xl font-mono font-bold text-xs inline-flex items-center gap-2 transition-all cursor-pointer shadow-md bg-[#d95d39] hover:bg-[#c24e2b] text-white hover:scale-105 active:scale-95"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Start a Project with Ash</span>
+            </button>
+          </div>
+        </motion.div>
       </section>
 
       {/* 
         ========================================================================
-        5. CONTACTS / COLLABORATE SECTION
+        4. CONTACTS / COLLABORATE SECTION
         ========================================================================
       */}
       <SectionDivider
@@ -1333,8 +1365,14 @@ export default function App() {
 
       <ContactModal
         isOpen={isContactOpen}
-        onClose={() => setIsContactOpen(false)}
+        onClose={() => {
+          setIsContactOpen(false);
+          setScopeForInquiry(undefined);
+          setCategoryForInquiry(undefined);
+        }}
         theme={theme}
+        initialScopeDetails={scopeForInquiry}
+        initialCategory={categoryForInquiry}
       />
 
       <ServiceModal
@@ -1342,6 +1380,22 @@ export default function App() {
         onClose={() => setSelectedService(null)}
         theme={theme}
         onContactClick={() => setIsContactOpen(true)}
+      />
+
+      {/* Quick Command Palette (Cmd+K / Ctrl+K & Floating Dock) */}
+      <QuickCommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onOpen={() => setIsCommandPaletteOpen(true)}
+        theme={theme}
+        onThemeToggle={() =>
+          setTheme(theme === 'monochrome-dark' ? 'monochrome-light' : 'monochrome-dark')
+        }
+        onNavigateSection={scrollToSection}
+        onFilterProjects={(filter) => {
+          setProjectDisciplineFilter(filter);
+        }}
+        onOpenContact={handleOpenNormalContact}
       />
     </div>
   );

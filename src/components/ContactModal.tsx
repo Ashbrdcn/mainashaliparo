@@ -7,15 +7,34 @@ interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
   theme: ThemeMode;
+  initialScopeDetails?: string;
+  initialCategory?: string;
 }
 
-export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, theme }) => {
+export const ContactModal: React.FC<ContactModalProps> = ({
+  isOpen,
+  onClose,
+  theme,
+  initialScopeDetails,
+  initialCategory
+}) => {
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [projectType, setProjectType] = useState('Full-Stack Web Development');
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialScopeDetails) {
+        setMessage(`Hi Ash,\n\nI reviewed your portfolio and would like to inquire about the following project scope:\n\n${initialScopeDetails}\n\nLooking forward to hearing from you!`);
+      }
+      if (initialCategory) {
+        setProjectType(initialCategory);
+      }
+    }
+  }, [isOpen, initialScopeDetails, initialCategory]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

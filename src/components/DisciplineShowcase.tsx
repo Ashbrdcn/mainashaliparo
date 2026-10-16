@@ -409,9 +409,18 @@ export const DisciplineShowcase: React.FC<DisciplineShowcaseProps> = ({
 
             {/* Grid of Projects for this discipline */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {disciplineProjects.map((proj) => (
-                <div
+              {disciplineProjects.map((proj, idx) => (
+                <motion.div
                   key={proj.id}
+                  initial={{ opacity: 0, y: 35 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: idx * 0.1,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
                   onClick={() => onSelectProject(proj)}
                   role="button"
                   tabIndex={0}
@@ -476,7 +485,7 @@ export const DisciplineShowcase: React.FC<DisciplineShowcaseProps> = ({
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
